@@ -1,0 +1,26 @@
+{
+  "name": "satoshi-fire-alarm",
+  "version": "1.0.0",
+  "description": "Tutorial for Bitcore",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bitpay/satoshi-fire-alarm.git"
+  },
+  "keywords": [
+    "bitcore"
+  ],
+  "author": "BitPay",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bitpay/satoshi-fire-alarm/issues"
+  },
+  "homepage": "https://github.com/bitpay/satoshi-fire-alarm#readme",
+  "private": true,
+  "dependencies": {
+    "bitcore-lib": "^0.13.15"
+  }
+}

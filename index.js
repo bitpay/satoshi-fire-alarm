@@ -1,14 +1,16 @@
-var index = require('../../node_modules/bitcore-node');
-var log = index.log;
+'use strict';
+
 var util = require('util');
-var Service = require('../../node_modules/bitcore-node/lib/service');
-var Transaction = require('../../node_modules/bitcore-node/lib/transaction');
+var EventEmitter = require('events').EventEmitter;
+var bitcore = require('bitcore-lib');
 var spawn = require('child_process').spawn;
 
 function SatoshiCoins(options) {
-  Service.call(this, options);
+  EventEmitter.call(this, options);
+  this.node = options.node;
+
   this.alarmActivated = false;
-  this.child;
+  this.child = false;
   this.interestingAddresses = [
     '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa', //this is the address that the genesis paid its coinbase to. Can't be spent due to a bug in the code.
     '12c6DSiU4Rq3P4ZxziKxzrL5LmMBrzjrJX', //Block 1
@@ -21,68 +23,80 @@ function SatoshiCoins(options) {
  * We are going to need bitcoind because we will be setting event listeners (subscribers)
  * on Blocks and such
  */
-SatoshiCoins.dependencies = ['bitcoind', 'db', 'address'];
+SatoshiCoins.dependencies = ['bitcoind'];
 
 /*
  * inherits the serivce base class so we get some stuff for free
  */
-util.inherits(SatoshiCoins, Service);
+util.inherits(SatoshiCoins, EventEmitter);
 
 /*
  * start: REQUIRED!! Ours just calls the callback
  */
 SatoshiCoins.prototype.start = function(callback) {
   callback();
-}
+};
 
 /*
  * stop: REQUIRED!! Ours just calls the callback
  */
 SatoshiCoins.prototype.stop = function(callback) {
   callback();
-}
+};
+
+SatoshiCoins.prototype.getAPIMethods = function() {
+  return [];
+};
+
+SatoshiCoins.prototype.getPublishEvents = function() {
+  return [];
+};
 
 /*
  * transactionHandler: this is the delegate when a transaction is received by your node
  */
-SatoshiCoins.prototype.transactionHandler = function(txinfo) {
-  var tx = bitcore.Transaction().fromBuffer(txInfo.buffer);
+SatoshiCoins.prototype.transactionHandler = function(txBuffer) {
+  var self = this;
 
-  var messages = {};
+  var tx = bitcore.Transaction().fromBuffer(txBuffer);
 
-  var inputsLength = tx.inputs.length;
-  for (var i = 0; i < inputsLength; i++) {
-    this.transactionInputHandler(tx, i);
+  for (var i = 0; i < tx.inputs.length; i++) {
+    self.transactionInputHandler(tx.inputs[i]);
   }
 
-}
+};
 
 /*
  * transactionInputHandler: helper for transactionHandler
  */
-SatoshiCoins.prototype.transactionInputHandler = function(tx, i) {
-  var address = tx.inputs[i].script.toAddress();
-
-  if (typeof address !== 'undefined' &&
-      this.interestingAddresses.indexOf(address) != -1) {
+SatoshiCoins.prototype.transactionInputHandler = function(input) {
+  if (!input.script) {
+    return;
+  }
+  var address = input.script.toAddress(this.node.network);
+  if (address && this.interestingAddresses.indexOf(address.toString()) != -1) {
     this.soundAlarm();
   }
-}
+};
 
 /*
  * soundAlarm: will launch a separate alarm program (not provided)
  */
 SatoshiCoins.prototype.soundAlarm = function() {
-  if (this.alarmActivated) return;
+  if (this.alarmActivated) {
+    return;
+  }
 
   this.alarmActivated = true;
-  var child = spawn('alarm', []);
-}
+  this.child = spawn('alarm', []);
+};
 
 SatoshiCoins.prototype.resetAlarm = function() {
-  child.kill();
+  if (this.child) {
+    this.child.kill();
+  }
   this.alarmActivated = false;
-}
+};
 
 module.exports = SatoshiCoins;
 
