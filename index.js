@@ -5,7 +5,7 @@ var EventEmitter = require('events').EventEmitter;
 var bitcore = require('bitcore-lib');
 var spawn = require('child_process').spawn;
 
-function SatoshiCoins(options) {
+function SatoshiFireAlarm(options) {
   EventEmitter.call(this, options);
   this.node = options.node;
 
@@ -23,39 +23,39 @@ function SatoshiCoins(options) {
  * We are going to need bitcoind because we will be setting event listeners (subscribers)
  * on Blocks and such
  */
-SatoshiCoins.dependencies = ['bitcoind'];
+SatoshiFireAlarm.dependencies = ['bitcoind'];
 
 /*
  * inherits the serivce base class so we get some stuff for free
  */
-util.inherits(SatoshiCoins, EventEmitter);
+util.inherits(SatoshiFireAlarm, EventEmitter);
 
 /*
  * start: REQUIRED!! Ours just calls the callback
  */
-SatoshiCoins.prototype.start = function(callback) {
+SatoshiFireAlarm.prototype.start = function(callback) {
   callback();
 };
 
 /*
  * stop: REQUIRED!! Ours just calls the callback
  */
-SatoshiCoins.prototype.stop = function(callback) {
+SatoshiFireAlarm.prototype.stop = function(callback) {
   callback();
 };
 
-SatoshiCoins.prototype.getAPIMethods = function() {
+SatoshiFireAlarm.prototype.getAPIMethods = function() {
   return [];
 };
 
-SatoshiCoins.prototype.getPublishEvents = function() {
+SatoshiFireAlarm.prototype.getPublishEvents = function() {
   return [];
 };
 
 /*
  * transactionHandler: this is the delegate when a transaction is received by your node
  */
-SatoshiCoins.prototype.transactionHandler = function(txBuffer) {
+SatoshiFireAlarm.prototype.transactionHandler = function(txBuffer) {
   var self = this;
 
   var tx = bitcore.Transaction().fromBuffer(txBuffer);
@@ -69,7 +69,7 @@ SatoshiCoins.prototype.transactionHandler = function(txBuffer) {
 /*
  * transactionInputHandler: helper for transactionHandler
  */
-SatoshiCoins.prototype.transactionInputHandler = function(input) {
+SatoshiFireAlarm.prototype.transactionInputHandler = function(input) {
   if (!input.script) {
     return;
   }
@@ -82,7 +82,7 @@ SatoshiCoins.prototype.transactionInputHandler = function(input) {
 /*
  * soundAlarm: will launch a separate alarm program (not provided)
  */
-SatoshiCoins.prototype.soundAlarm = function() {
+SatoshiFireAlarm.prototype.soundAlarm = function() {
   if (this.alarmActivated) {
     return;
   }
@@ -91,12 +91,12 @@ SatoshiCoins.prototype.soundAlarm = function() {
   this.child = spawn('alarm', []);
 };
 
-SatoshiCoins.prototype.resetAlarm = function() {
+SatoshiFireAlarm.prototype.resetAlarm = function() {
   if (this.child) {
     this.child.kill();
   }
   this.alarmActivated = false;
 };
 
-module.exports = SatoshiCoins;
+module.exports = SatoshiFireAlarm;
 
